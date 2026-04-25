@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "dgSpecHash": "rGhL/UXutGM=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\laybunleap\\Music\\Project_Download_Videos\\LBL_Downloader.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\laybunleap\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\laybunleap\\.nuget\\packages\\youtubedlsharp\\1.2.0\\youtubedlsharp.1.2.0.nupkg.sha512",
+    "C:\\Users\\laybunleap\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.12\\microsoft.netcore.app.ref.9.0.12.nupkg.sha512",
+    "C:\\Users\\laybunleap\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.12\\microsoft.windowsdesktop.app.ref.9.0.12.nupkg.sha512",
+    "C:\\Users\\laybunleap\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.12\\microsoft.aspnetcore.app.ref.9.0.12.nupkg.sha512",
+    "C:\\Users\\laybunleap\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\9.0.12\\microsoft.netcore.app.host.win-x64.9.0.12.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "message": "LBL_Downloader depends on YoutubeDLSharp (>= 1.1.5) but YoutubeDLSharp 1.1.5 was not found. YoutubeDLSharp 1.2.0 was resolved instead.",
+      "projectPath": "C:\\Users\\laybunleap\\Music\\Project_Download_Videos\\LBL_Downloader.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\laybunleap\\Music\\Project_Download_Videos\\LBL_Downloader.csproj",
+      "libraryId": "YoutubeDLSharp",
+      "targetGraphs": [
+        "net9.0"
+      ]
+    }
+  ]
+}
