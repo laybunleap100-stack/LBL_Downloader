@@ -1,0 +1,4 @@
+﻿bin/
+obj/
+wwwroot/downloads/*
+wwwroot/bin/*.exe
