@@ -19,12 +19,18 @@ namespace LBL_Downloader.Controllers
             _env = env;
             _ytdl = new YoutubeDL();
 
-            string binFolder = Path.Combine(_env.WebRootPath, "bin");
+            string webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+            string binFolder = Path.Combine(webRoot, "bin");
+            string downloadFolder = Path.Combine(webRoot, "downloads");
+
+            if (!Directory.Exists(binFolder)) Directory.CreateDirectory(binFolder);
+            if (!Directory.Exists(downloadFolder)) Directory.CreateDirectory(downloadFolder);
+
             bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
 
-            _ytdl.YoutubeDLPath = Path.Combine(binFolder, isWindows ? "yt-dlp.exe" : "yt-dlp");
-            _ytdl.FFmpegPath = Path.Combine(binFolder, isWindows ? "ffmpeg.exe" : "ffmpeg");
-            _ytdl.OutputFolder = Path.Combine(_env.WebRootPath, "downloads");
+            _ytdl.YoutubeDLPath = isWindows ? Path.Combine(binFolder, "yt-dlp.exe") : "yt-dlp";
+            _ytdl.FFmpegPath = isWindows ? Path.Combine(binFolder, "ffmpeg.exe") : "ffmpeg";
+            _ytdl.OutputFolder = downloadFolder;
         }
 
         public IActionResult Index()
@@ -35,15 +41,17 @@ namespace LBL_Downloader.Controllers
         [HttpPost]
         public async Task<IActionResult> StartDownload(string videoUrl)
         {
-            string downloadFolder = Path.Combine(_env.WebRootPath, "downloads");
-            DirectoryInfo di = new DirectoryInfo(downloadFolder);
-            if (di.Exists)
+            string webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+            string downloadFolder = Path.Combine(webRoot, "downloads");
+
+            if (Directory.Exists(downloadFolder))
             {
+                DirectoryInfo di = new DirectoryInfo(downloadFolder);
                 foreach (FileInfo file in di.GetFiles())
                 {
                     if (file.CreationTime < DateTime.Now.AddMinutes(-30))
                     {
-                        file.Delete();
+                        try { file.Delete(); } catch { }
                     }
                 }
             }
@@ -83,13 +91,14 @@ namespace LBL_Downloader.Controllers
         [HttpGet]
         public IActionResult GetFileAndPath(string fileName)
         {
+            string webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
             string decodedName = System.Net.WebUtility.UrlDecode(fileName);
-            string filePath = Path.Combine(_env.WebRootPath, "downloads", decodedName);
+            string filePath = Path.Combine(webRoot, "downloads", decodedName);
 
             if (System.IO.File.Exists(filePath))
             {
                 var fileBytes = System.IO.File.ReadAllBytes(filePath);
-                System.IO.File.Delete(filePath);
+                try { System.IO.File.Delete(filePath); } catch { }
                 return File(fileBytes, "application/octet-stream", decodedName);
             }
 
