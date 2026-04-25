@@ -28,8 +28,8 @@ namespace LBL_Downloader.Controllers
 
             bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
 
-            _ytdl.YoutubeDLPath = isWindows ? Path.Combine(binFolder, "yt-dlp.exe") : "yt-dlp";
-            _ytdl.FFmpegPath = isWindows ? Path.Combine(binFolder, "ffmpeg.exe") : "ffmpeg";
+            _ytdl.YoutubeDLPath = isWindows ? Path.Combine(binFolder, "yt-dlp.exe") : "/usr/local/bin/yt-dlp";
+            _ytdl.FFmpegPath = isWindows ? Path.Combine(binFolder, "ffmpeg.exe") : "/usr/bin/ffmpeg";
             _ytdl.OutputFolder = downloadFolder;
         }
 
