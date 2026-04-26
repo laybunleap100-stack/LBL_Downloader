@@ -69,12 +69,15 @@ namespace LBL_Downloader.Controllers
 
                 string safeFileName = "video_" + DateTime.Now.Ticks;
                 
+                // ប្រើតែ Property ដែលមានស្រាប់ពិតប្រាកដក្នុងគ្រប់ Version
                 var options = new OptionSet()
                 {
                     Output = Path.Combine(_ytdl.OutputFolder, safeFileName + ".%(ext)s"),
                     NoCheckCertificates = true
                 };
 
+                // ដោយសារ RunVideoDownload មិនមាន parameter customArgs ក្នុង version នេះ
+                // យើងប្រើ Method សាមញ្ញបំផុតដែលបណ្ណាល័យផ្តល់ឱ្យ
                 var res = await _ytdl.RunVideoDownload(
                     videoUrl, 
                     progress: progress, 
