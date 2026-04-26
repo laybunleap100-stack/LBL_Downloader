@@ -46,9 +46,9 @@ namespace LBL_Downloader.Controllers
                 var options = new OptionSet()
                 {
                     NoCheckCertificates = true,
-                    Format = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-                    // បន្ថែម UserAgent ដើម្បីកុំឱ្យ YouTube Block
-                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+                    Format = "best[ext=mp4]/best", 
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+                    NoPart = true
                 };
 
                 var res = await _ytdl.RunVideoDownload(videoUrl, progress: progress, overrideOptions: options);
@@ -60,9 +60,8 @@ namespace LBL_Downloader.Controllers
 
                     if (System.IO.File.Exists(tempFilePath))
                     {
-                        var fileBytes = await System.IO.File.ReadAllBytesAsync(tempFilePath);
-                        try { System.IO.File.Delete(tempFilePath); } catch { }
-                        return File(fileBytes, "video/mp4", finalFileName);
+                        var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.None, 4096, FileOptions.DeleteOnClose);
+                        return File(fileStream, "video/mp4", finalFileName);
                     }
                 }
                 
@@ -77,7 +76,7 @@ namespace LBL_Downloader.Controllers
         [HttpGet]
         public IActionResult GetFileAndPath(string fileName)
         {
-            return NotFound("មុខងារនេះត្រូវបានជំនួសដោយការទាញយកផ្ទាល់ (Direct Download)។");
+            return NotFound("មុខងារនេះត្រូវបានជំនួសដោយការទាញយកផ្ទាល់។");
         }
     }
 }
