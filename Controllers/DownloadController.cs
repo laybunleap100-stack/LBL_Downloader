@@ -19,7 +19,6 @@ namespace LBL_Downloader.Controllers
             _env = env;
             _ytdl = new YoutubeDL();
 
-            // កំណត់ Path សម្រាប់ Linux/Render ឱ្យបានត្រឹមត្រូវ
             bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
             _ytdl.YoutubeDLPath = isWindows ? Path.Combine(AppContext.BaseDirectory, "bin", "yt-dlp.exe") : "/usr/local/bin/yt-dlp";
             _ytdl.FFmpegPath = isWindows ? Path.Combine(AppContext.BaseDirectory, "bin", "ffmpeg.exe") : "/usr/bin/ffmpeg";
@@ -47,27 +46,22 @@ namespace LBL_Downloader.Controllers
                 var options = new OptionSet()
                 {
                     NoCheckCertificates = true,
-                    // បង្ខំយក MP4 ជានិច្ច
-                    Format = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+                    Format = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+                    // បន្ថែម UserAgent ដើម្បីកុំឱ្យ YouTube Block
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
                 };
 
-                // ប្រើ RunVideoDownload ដើម្បីទាញយកទិន្នន័យ (Data) មកទុកក្នុង Memory
                 var res = await _ytdl.RunVideoDownload(videoUrl, progress: progress, overrideOptions: options);
                 
                 if (res.Success)
                 {
-                    // ទាញយក File Path បណ្ដោះអាសន្នដែល yt-dlp បានបង្កើត
                     string tempFilePath = res.Data; 
                     string finalFileName = $"video_{DateTime.Now.Ticks}.mp4";
 
                     if (System.IO.File.Exists(tempFilePath))
                     {
                         var fileBytes = await System.IO.File.ReadAllBytesAsync(tempFilePath);
-                        
-                        // លុប File ចោលភ្លាមៗក្រោយអានរួច ដើម្បីកុំឱ្យពេញទំហំផ្ទុកលើ Render
                         try { System.IO.File.Delete(tempFilePath); } catch { }
-
-                        // បញ្ជូន File ទៅកាន់ Browser ជាមួយ MIME Type ត្រឹមត្រូវ
                         return File(fileBytes, "video/mp4", finalFileName);
                     }
                 }
@@ -80,7 +74,6 @@ namespace LBL_Downloader.Controllers
             }
         }
 
-        // មុខងារនេះអាចទុកសម្រាប់ករណីប្រើប្រាស់ផ្សេងៗ
         [HttpGet]
         public IActionResult GetFileAndPath(string fileName)
         {
