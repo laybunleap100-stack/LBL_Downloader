@@ -19,17 +19,20 @@
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card p-5">
-                    <h2 class="text-center text-primary mb-4">កម្មវិធីទាញយកវីដេអូ LBL</h2>
-                    
+                    <h2 class="text-center text-primary mb-4">ទាញយក LBL</h2>
+
                     <div class="mb-4">
-                        <label class="form-label">បញ្ចូលតំណភ្ជាប់ (Video URL)</label>
+                        <label class="form-label">តំណភ្ជាប់វីដេអូ (Video URL)</label>
                         <input type="text" id="videoUrl" class="form-control" placeholder="https://...">
                     </div>
 
-                    <button id="btnAction" onclick="handleDownload()" class="btn btn-download w-100">ចាប់ផ្តើមទាញយក</button>
-                    
+                    <button id="btnAction" onclick="handleDownload()" class="btn btn-download w-100">
+                        ទាញយក
+                    </button>
+
                     <div class="progress mt-4" id="progressContainer">
-                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%;">0%</div>
+                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                             role="progressbar" style="width: 0%;">0%</div>
                     </div>
 
                     <div id="result" class="mt-4 text-center"></div>
@@ -44,7 +47,7 @@
             .withUrl("/downloadHub")
             .build();
 
-        connection.start();
+        connection.start().catch(err => console.error("SignalR error:", err));
 
         connection.on("ReceiveProgress", function (percent) {
             document.getElementById('progressContainer').style.display = "flex";
@@ -54,7 +57,7 @@
         });
 
         async function handleDownload() {
-            const url = document.getElementById('videoUrl').value;
+            const url = document.getElementById('videoUrl').value.trim();
             const btn = document.getElementById('btnAction');
             const resultDiv = document.getElementById('result');
             const bar = document.getElementById('progressBar');
@@ -68,26 +71,33 @@
             resultDiv.innerHTML = "";
 
             try {
+        
                 const response = await fetch('/Download/StartDownload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: 'videoUrl=' + encodeURIComponent(url)
                 });
+
                 const data = await response.json();
 
                 if (data.success) {
+              
                     resultDiv.innerHTML = `
                         <div class="alert alert-success">
-                            ជោគជ័យ! <br>
-                            <a href="/Download/GetFileAndPath?fileName=${data.fileName}" class="btn btn-success mt-2 fw-bold text-decoration-none">
-                                ចុចទីនេះដើម្បីរក្សាទុកវីដេអូ
+                            ទាញយកបានជោគជ័យ! <br>
+                            <a href="/Download/GetFile?fileName=${encodeURIComponent(data.fileName)}"
+                               class="btn btn-success mt-2 fw-bold text-decoration-none">
+                                💾 រក្សាទុកវីដេអូ
                             </a>
                         </div>`;
+              
+                    bar.style.width = "100%";
+                    bar.innerText = "100%";
                 } else {
-                    resultDiv.innerHTML = `<div class="alert alert-danger">បរាជ័យ: ${data.message}</div>`;
+                    resultDiv.innerHTML = `<div class="alert alert-danger">កំហុស: ${data.message}</div>`;
                 }
             } catch (err) {
-                resultDiv.innerHTML = `<div class="alert alert-danger">មានកំហុសបច្ចេកទេស!</div>`;
+                resultDiv.innerHTML = `<div class="alert alert-danger">កំហុសបណ្តាញ: ${err.message}</div>`;
             } finally {
                 btn.disabled = false;
             }
