@@ -72,11 +72,5 @@ namespace LBL_Downloader.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
-        [HttpGet]
-        public IActionResult GetFileAndPath(string fileName)
-        {
-            return NotFound("មុខងារនេះត្រូវបានជំនួសដោយការទាញយកផ្ទាល់។");
-        }
     }
 }
