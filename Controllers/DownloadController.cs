@@ -69,15 +69,13 @@ namespace LBL_Downloader.Controllers
 
                 string safeFileName = "video_" + DateTime.Now.Ticks;
                 
-                // ប្រើតែ Property ដែលមានស្រាប់ពិតប្រាកដក្នុងគ្រប់ Version
                 var options = new OptionSet()
                 {
                     Output = Path.Combine(_ytdl.OutputFolder, safeFileName + ".%(ext)s"),
-                    NoCheckCertificates = true
+                    NoCheckCertificates = true,
+                    Format = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
                 };
 
-                // ដោយសារ RunVideoDownload មិនមាន parameter customArgs ក្នុង version នេះ
-                // យើងប្រើ Method សាមញ្ញបំផុតដែលបណ្ណាល័យផ្តល់ឱ្យ
                 var res = await _ytdl.RunVideoDownload(
                     videoUrl, 
                     progress: progress, 
@@ -108,7 +106,7 @@ namespace LBL_Downloader.Controllers
             {
                 var fileBytes = System.IO.File.ReadAllBytes(filePath);
                 try { System.IO.File.Delete(filePath); } catch { }
-                return File(fileBytes, "application/octet-stream", decodedName);
+                return File(fileBytes, "video/mp4", decodedName);
             }
 
             return NotFound("រកមិនឃើញវីដេអូ ឬវីដេអូត្រូវបានលុបចេញពី Server។");
