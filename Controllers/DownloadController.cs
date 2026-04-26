@@ -19,18 +19,10 @@ namespace LBL_Downloader.Controllers
             _env = env;
             _ytdl = new YoutubeDL();
 
-            string webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
-            string binFolder = Path.Combine(webRoot, "bin");
-            string downloadFolder = Path.Combine(webRoot, "downloads");
-
-            if (!Directory.Exists(binFolder)) Directory.CreateDirectory(binFolder);
-            if (!Directory.Exists(downloadFolder)) Directory.CreateDirectory(downloadFolder);
-
+            // កំណត់ Path សម្រាប់ Linux/Render ឱ្យបានត្រឹមត្រូវ
             bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
-
-            _ytdl.YoutubeDLPath = isWindows ? Path.Combine(binFolder, "yt-dlp.exe") : "/usr/local/bin/yt-dlp";
-            _ytdl.FFmpegPath = isWindows ? Path.Combine(binFolder, "ffmpeg.exe") : "/usr/bin/ffmpeg";
-            _ytdl.OutputFolder = downloadFolder;
+            _ytdl.YoutubeDLPath = isWindows ? Path.Combine(AppContext.BaseDirectory, "bin", "yt-dlp.exe") : "/usr/local/bin/yt-dlp";
+            _ytdl.FFmpegPath = isWindows ? Path.Combine(AppContext.BaseDirectory, "bin", "ffmpeg.exe") : "/usr/bin/ffmpeg";
         }
 
         public IActionResult Index()
@@ -41,21 +33,6 @@ namespace LBL_Downloader.Controllers
         [HttpPost]
         public async Task<IActionResult> StartDownload(string videoUrl)
         {
-            string webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
-            string downloadFolder = Path.Combine(webRoot, "downloads");
-
-            if (Directory.Exists(downloadFolder))
-            {
-                DirectoryInfo di = new DirectoryInfo(downloadFolder);
-                foreach (FileInfo file in di.GetFiles())
-                {
-                    if (file.CreationTime < DateTime.Now.AddMinutes(-30))
-                    {
-                        try { file.Delete(); } catch { }
-                    }
-                }
-            }
-
             if (string.IsNullOrEmpty(videoUrl))
             {
                 return Json(new { success = false, message = "សូមបញ្ចូល Link វីដេអូ!" });
@@ -67,26 +44,34 @@ namespace LBL_Downloader.Controllers
                     _hubContext.Clients.All.SendAsync("ReceiveProgress", Math.Round(p.Progress * 100));
                 });
 
-                string safeFileName = "video_" + DateTime.Now.Ticks;
-                
                 var options = new OptionSet()
                 {
-                    Output = Path.Combine(_ytdl.OutputFolder, safeFileName + ".%(ext)s"),
                     NoCheckCertificates = true,
+                    // បង្ខំយក MP4 ជានិច្ច
                     Format = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
                 };
 
-                var res = await _ytdl.RunVideoDownload(
-                    videoUrl, 
-                    progress: progress, 
-                    overrideOptions: options
-                );
+                // ប្រើ RunVideoDownload ដើម្បីទាញយកទិន្នន័យ (Data) មកទុកក្នុង Memory
+                var res = await _ytdl.RunVideoDownload(videoUrl, progress: progress, overrideOptions: options);
                 
                 if (res.Success)
                 {
-                    string actualFileName = Path.GetFileName(res.Data);
-                    return Json(new { success = true, fileName = actualFileName });
+                    // ទាញយក File Path បណ្ដោះអាសន្នដែល yt-dlp បានបង្កើត
+                    string tempFilePath = res.Data; 
+                    string finalFileName = $"video_{DateTime.Now.Ticks}.mp4";
+
+                    if (System.IO.File.Exists(tempFilePath))
+                    {
+                        var fileBytes = await System.IO.File.ReadAllBytesAsync(tempFilePath);
+                        
+                        // លុប File ចោលភ្លាមៗក្រោយអានរួច ដើម្បីកុំឱ្យពេញទំហំផ្ទុកលើ Render
+                        try { System.IO.File.Delete(tempFilePath); } catch { }
+
+                        // បញ្ជូន File ទៅកាន់ Browser ជាមួយ MIME Type ត្រឹមត្រូវ
+                        return File(fileBytes, "video/mp4", finalFileName);
+                    }
                 }
+                
                 return Json(new { success = false, message = "កំហុស៖ " + string.Join(" ", res.ErrorOutput) });
             }
             catch (Exception ex)
@@ -95,21 +80,11 @@ namespace LBL_Downloader.Controllers
             }
         }
 
+        // មុខងារនេះអាចទុកសម្រាប់ករណីប្រើប្រាស់ផ្សេងៗ
         [HttpGet]
         public IActionResult GetFileAndPath(string fileName)
         {
-            string webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
-            string decodedName = System.Net.WebUtility.UrlDecode(fileName);
-            string filePath = Path.Combine(webRoot, "downloads", decodedName);
-
-            if (System.IO.File.Exists(filePath))
-            {
-                var fileBytes = System.IO.File.ReadAllBytes(filePath);
-                try { System.IO.File.Delete(filePath); } catch { }
-                return File(fileBytes, "video/mp4", decodedName);
-            }
-
-            return NotFound("រកមិនឃើញវីដេអូ ឬវីដេអូត្រូវបានលុបចេញពី Server។");
+            return NotFound("មុខងារនេះត្រូវបានជំនួសដោយការទាញយកផ្ទាល់ (Direct Download)។");
         }
     }
 }
