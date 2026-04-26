@@ -70,7 +70,13 @@ namespace LBL_Downloader.Controllers
                 string safeFileName = "video_" + DateTime.Now.Ticks;
                 var options = new OptionSet()
                 {
-                    Output = Path.Combine(_ytdl.OutputFolder, safeFileName + ".%(ext)s")
+                    Output = Path.Combine(_ytdl.OutputFolder, safeFileName + ".%(ext)s"),
+                    NoCheckCertificates = true,
+                    CustomArgs = new [] { 
+                        "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                        "--no-warnings",
+                        "--geo-bypass"
+                    }
                 };
 
                 var res = await _ytdl.RunVideoDownload(videoUrl, progress: progress, overrideOptions: options);
