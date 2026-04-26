@@ -24,18 +24,12 @@ namespace LBL_Downloader.Controllers
             _ytdl.FFmpegPath = isWindows ? Path.Combine(AppContext.BaseDirectory, "bin", "ffmpeg.exe") : "/usr/bin/ffmpeg";
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() => View();
 
         [HttpPost]
         public async Task<IActionResult> StartDownload(string videoUrl)
         {
-            if (string.IsNullOrEmpty(videoUrl))
-            {
-                return Json(new { success = false, message = "សូមបញ្ចូល Link វីដេអូ!" });
-            }
+            if (string.IsNullOrEmpty(videoUrl)) return Json(new { success = false, message = "សូមបញ្ចូល Link វីដេអូ!" });
 
             try 
             {
@@ -48,7 +42,9 @@ namespace LBL_Downloader.Controllers
                     NoCheckCertificates = true,
                     Format = "best[ext=mp4]/best", 
                     UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-                    NoPart = true
+                    NoPart = true,
+                    JsRuntimes = "node",
+                    Impersonate = "chrome"
                 };
 
                 var res = await _ytdl.RunVideoDownload(videoUrl, progress: progress, overrideOptions: options);
@@ -56,12 +52,10 @@ namespace LBL_Downloader.Controllers
                 if (res.Success)
                 {
                     string tempFilePath = res.Data; 
-                    string finalFileName = $"video_{DateTime.Now.Ticks}.mp4";
-
                     if (System.IO.File.Exists(tempFilePath))
                     {
                         var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.None, 4096, FileOptions.DeleteOnClose);
-                        return File(fileStream, "video/mp4", finalFileName);
+                        return File(fileStream, "video/mp4", $"video_{DateTime.Now.Ticks}.mp4");
                     }
                 }
                 
